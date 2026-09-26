@@ -1,0 +1,141 @@
+{{define "base"}}<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Judul}} &middot; Tokoku</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%8D%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div class="app">
+  {{template "sidebar" .}}
+  <div class="main">
+    {{template "topbar" .}}
+    <main class="content">
+      {{template "content" .}}
+    </main>
+    <footer class="footer">
+      <span>Dibuat dengan <strong>Go</strong> net/http &amp; html/template</span>
+      <span class="dot"></span>
+      <span>Data tersimpan di MySQL</span>
+    </footer>
+  </div>
+</div>
+
+{{if .Flash}}
+<div class="toast toast-{{.Flash.Jenis}}" role="status">
+  <span class="toast-icon">
+    {{if eq .Flash.Jenis "sukses"}}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    {{else}}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    {{end}}
+  </span>
+  <span>{{.Flash.Pesan}}</span>
+  <button class="toast-close" type="button" data-toast-close>&times;</button>
+</div>
+{{end}}
+
+<div class="modal" id="modal-hapus" hidden>
+  <div class="modal-backdrop" data-modal-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-hapus-judul">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg>
+    </div>
+    <h3 id="modal-hapus-judul">Hapus produk ini?</h3>
+    <p>Produk <strong id="modal-hapus-nama">-</strong> akan dihapus permanen dari database. Tindakan ini tidak bisa dibatalkan.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" type="button" data-modal-close>Batal</button>
+      <button class="btn btn-danger" type="button" id="modal-hapus-ya">Ya, hapus</button>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/app.js"></script>
+</body>
+</html>
+{{end}}
+
+{{define "sidebar"}}
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <span class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.5 11.5A2 2 0 0 1 17.5 22h-11a2 2 0 0 1-2-1.5L3 9Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+    </span>
+    <span class="brand-text">
+      <strong>Tokoku</strong>
+      <small>CRUD Product</small>
+    </span>
+  </div>
+
+  <nav class="nav">
+    <p class="nav-label">Menu</p>
+    <a class="nav-item {{if eq .Menu "dashboard"}}active{{end}}" href="/dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-item {{if eq .Menu "produk"}}active{{end}}" href="/produk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.5 11.5A2 2 0 0 1 17.5 22h-11a2 2 0 0 1-2-1.5L3 9Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+      <span>Produk</span>
+      <span class="nav-count">{{.Stats.TotalProduk}}</span>
+    </a>
+    <a class="nav-item {{if eq .Menu "tambah"}}active{{end}}" href="/produk/tambah">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>Tambah Produk</span>
+    </a>
+
+    <p class="nav-label">Kategori</p>
+    {{if .KategoriStat}}
+      {{range .KategoriStat}}
+      <a class="nav-item nav-sub" href="/produk?kategori={{urlquery .Nama}}">
+        <span class="nav-dot"></span>
+        <span>{{.Nama}}</span>
+        <span class="nav-count">{{.Jumlah}}</span>
+      </a>
+      {{end}}
+    {{else}}
+      <p class="nav-empty">Belum ada kategori</p>
+    {{end}}
+  </nav>
+
+  <div class="sidebar-foot">
+    <div class="storage">
+      <div class="storage-head">
+        <span>Total produk</span>
+        <strong>{{.Stats.TotalProduk}}</strong>
+      </div>
+      <div class="progress"><span style="width: {{persen .Stats.TotalProduk}}%"></span></div>
+      <small>{{angka .Stats.TotalStok}} unit barang tercatat</small>
+    </div>
+  </div>
+</aside>
+{{end}}
+
+{{define "topbar"}}
+<header class="topbar">
+  <button class="icon-btn only-mobile" type="button" data-sidebar-toggle aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <div class="topbar-title">
+    <h1>{{.Judul}}</h1>
+    <p>{{.Subjudul}}</p>
+  </div>
+  <form class="topbar-search" action="/produk" method="get">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" name="q" placeholder="Cari produk, kode, kategori..." value="{{.Filter.Cari}}" data-autosubmit>
+    <kbd>/</kbd>
+  </form>
+  <div class="topbar-actions">
+    <button class="icon-btn" type="button" data-theme-toggle aria-label="Ganti tema">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+    </button>
+    <a class="btn btn-primary" href="/produk/tambah">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Tambah Produk</span>
+    </a>
+    <div class="avatar" title="Admin Tokoku">AD</div>
+  </div>
+</header>
+{{end}}

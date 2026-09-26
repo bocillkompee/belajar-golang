@@ -1,0 +1,176 @@
+{{define "halaman-list"}}{{template "base" .}}{{end}}
+
+{{define "content"}}
+<section class="stat-grid">
+  <article class="stat-card accent-violet">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.5 11.5A2 2 0 0 1 17.5 22h-11a2 2 0 0 1-2-1.5L3 9Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+    </div>
+    <div class="stat-body">
+      <p>Total Produk</p>
+      <strong>{{angka .Stats.TotalProduk}}</strong>
+      <small>{{.Stats.JumlahKategori}} kategori aktif</small>
+    </div>
+  </article>
+  <article class="stat-card accent-sky">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4z"/><path d="M4 11h16M9 7V4h6v3"/></svg>
+    </div>
+    <div class="stat-body">
+      <p>Total Stok</p>
+      <strong>{{angka .Stats.TotalStok}}</strong>
+      <small>unit barang tersedia</small>
+    </div>
+  </article>
+  <article class="stat-card accent-emerald">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 9 11l4 4 7-7"/><path d="M15 8h5v5"/></svg>
+    </div>
+    <div class="stat-body">
+      <p>Nilai Inventori</p>
+      <strong>{{rpSingkat .Stats.TotalNilai}}</strong>
+      <small>total harga x stok</small>
+    </div>
+  </article>
+  <article class="stat-card accent-amber">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3.1L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+    </div>
+    <div class="stat-body">
+      <p>Perlu Perhatian</p>
+      <strong>{{tambah .Stats.StokMenipis .Stats.StokHabis}}</strong>
+      <small>{{.Stats.StokMenipis}} menipis &middot; {{.Stats.StokHabis}} habis</small>
+    </div>
+  </article>
+</section>
+
+<section class="card">
+  <header class="card-head">
+    <div>
+      <h2>Daftar Produk</h2>
+      <p>
+        {{if .Filter.Aktif}}
+          Menampilkan {{.Total}} produk yang cocok dengan filter
+        {{else}}
+          Menampilkan semua {{.Total}} produk
+        {{end}}
+      </p>
+    </div>
+    <div class="card-tools">
+      <form class="sort-form" method="get" action="/produk">
+        {{if .Filter.Cari}}<input type="hidden" name="q" value="{{.Filter.Cari}}">{{end}}
+        {{if .Filter.Kategori}}<input type="hidden" name="kategori" value="{{.Filter.Kategori}}">{{end}}
+        <label for="urut">Urutkan</label>
+        <select id="urut" name="urut" data-autosubmit>
+          <option value="terbaru" {{if eq .Filter.Urutkan "terbaru"}}selected{{end}}>Terbaru</option>
+          <option value="terlama" {{if eq .Filter.Urutkan "terlama"}}selected{{end}}>Terlama</option>
+          <option value="nama" {{if eq .Filter.Urutkan "nama"}}selected{{end}}>Nama A-Z</option>
+          <option value="harga" {{if eq .Filter.Urutkan "harga"}}selected{{end}}>Harga terendah</option>
+          <option value="stok" {{if eq .Filter.Urutkan "stok"}}selected{{end}}>Stok terendah</option>
+        </select>
+        <noscript><button class="btn btn-ghost btn-sm" type="submit">Urutkan</button></noscript>
+      </form>
+      <a class="btn btn-primary btn-sm" href="/produk/tambah">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Tambah
+      </a>
+    </div>
+  </header>
+
+  {{if .Filter.Aktif}}
+  <div class="chips">
+    {{if .Filter.Cari}}
+    <a class="chip" href="/produk?kategori={{urlquery .Filter.Kategori}}&amp;urut={{urlquery .Filter.Urutkan}}&amp;arah={{urlquery .Filter.Arah}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      "{{.Filter.Cari}}" <span class="chip-x">&times;</span>
+    </a>
+    {{end}}
+    {{if .Filter.Kategori}}
+    <a class="chip" href="/produk?q={{urlquery .Filter.Cari}}&amp;urut={{urlquery .Filter.Urutkan}}&amp;arah={{urlquery .Filter.Arah}}">
+      {{.Filter.Kategori}} <span class="chip-x">&times;</span>
+    </a>
+    {{end}}
+    <a class="chip chip-reset" href="/produk">Reset filter</a>
+  </div>
+  {{end}}
+
+  {{if .Produk}}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th><a href="{{urutURL .Filter "nama"}}">Produk</a></th>
+          <th class="hide-md"><a href="{{urutURL .Filter "kategori"}}">Kategori</a></th>
+          <th><a href="{{urutURL .Filter "harga"}}">Harga</a></th>
+          <th><a href="{{urutURL .Filter "stok"}}">Stok</a></th>
+          <th class="hide-md">Nilai</th>
+          <th class="text-right">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Produk}}
+        <tr>
+          <td>
+            <div class="produk-cell">
+              <span class="thumb thumb-{{.Warna}}">{{.Emoji}}</span>
+              <div>
+                <strong>{{.Nama}}</strong>
+                <small>{{.Kode}} &middot; {{.Dibuat}}</small>
+              </div>
+            </div>
+          </td>
+          <td class="hide-md"><span class="badge badge-{{.Warna}}">{{.Kategori}}</span></td>
+          <td><strong class="harga">{{rp .Harga}}</strong></td>
+          <td>
+            <div class="stok">
+              <div class="stok-top">
+                <span class="stok-jumlah">{{rapi .Stok}}</span>
+                <span class="pill pill-{{.StokKelas}}">{{.StokLabel}}</span>
+              </div>
+              <div class="progress progress-{{.StokKelas}}"><span style="width: {{.PersentaseStok}}%"></span></div>
+            </div>
+          </td>
+          <td class="hide-md"><span class="muted">{{rpSingkat .Nilai}}</span></td>
+          <td>
+            <div class="row-actions">
+              <a class="icon-btn" href="/produk/{{.ID}}/edit" title="Edit produk">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </a>
+              <a class="icon-btn" href="/produk/{{.ID}}" title="Lihat detail">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+              </a>
+              <form method="post" action="/produk/{{.ID}}/hapus" data-hapus data-nama="{{.Nama}}">
+                <button class="icon-btn danger" type="submit" title="Hapus produk">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="empty">
+    <div class="empty-art">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.5 11.5A2 2 0 0 1 17.5 22h-11a2 2 0 0 1-2-1.5L3 9Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/><path d="M9.5 14h5"/></svg>
+    </div>
+    <h3>{{if .Filter.Aktif}}Produk tidak ditemukan{{else}}Belum ada produk{{end}}</h3>
+    <p>
+      {{if .Filter.Aktif}}
+        Coba ubah kata kunci atau reset filter untuk melihat semua produk.
+      {{else}}
+        Mulai dengan menambahkan produk pertama kamu.
+      {{end}}
+    </p>
+    <div class="empty-actions">
+      {{if .Filter.Aktif}}
+        <a class="btn btn-ghost" href="/produk">Reset filter</a>
+      {{end}}
+      <a class="btn btn-primary" href="/produk/tambah">Tambah Produk</a>
+    </div>
+  </div>
+  {{end}}
+</section>
+{{end}}

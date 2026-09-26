@@ -1,0 +1,141 @@
+{{define "halaman-form"}}{{template "base" .}}{{end}}
+
+{{define "content"}}
+<div class="form-layout">
+  <section class="card">
+    <header class="card-head">
+      <div>
+        <h2>{{if eq .Aksi "tambah"}}Tambah Produk Baru{{else}}Edit Produk{{end}}</h2>
+        <p>{{if eq .Aksi "tambah"}}Isi detail produk untuk mulai berjualan di Tokoku.{{else}}Perbarui informasi produk {{.Form.Kode}}.{{end}}</p>
+      </div>
+      <span class="pill pill-{{if eq .Aksi "tambah"}}info{{else}}aman{{end}}">{{if eq .Aksi "tambah"}}Mode tambah{{else}}Mode edit{{end}}</span>
+    </header>
+
+    {{if .Errors}}
+    <div class="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <div>
+        <strong>Periksa kembali isianmu</strong>
+        <ul>
+          {{range $field, $pesan := .Errors}}
+          <li>{{$pesan}}</li>
+          {{end}}
+        </ul>
+      </div>
+    </div>
+    {{end}}
+
+    <form class="form" method="post" action="{{.FormAksi}}" novalidate>
+      <div class="field">
+        <label for="nama">Nama Produk <span class="req">*</span></label>
+        <input class="input {{if index .Errors "nama"}}input-error{{end}}" type="text" id="nama" name="nama" placeholder="Contoh: Kopi Arabika Gayo 250g" value="{{.Form.Nama}}" maxlength="150" required data-preview="nama" autofocus>
+        {{if index .Errors "nama"}}<small class="err">{{index .Errors "nama"}}</small>{{else}}<small class="hint">Nama yang deskriptif bikin produk lebih mudah dicari.</small>{{end}}
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="kategori">Kategori <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select class="input {{if index .Errors "kategori"}}input-error{{end}}" id="kategori" name="kategori" required data-preview="kategori">
+              <option value="">-- Pilih kategori --</option>
+              {{range .KategoriOpsi}}
+              <option value="{{.}}" {{if eq . $.Form.Kategori}}selected{{end}}>{{.}}</option>
+              {{end}}
+            </select>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          {{if index .Errors "kategori"}}<small class="err">{{index .Errors "kategori"}}</small>{{else}}<small class="hint">Pilih kategori agar produk mudah dikelompokkan.</small>{{end}}
+        </div>
+
+        <div class="field">
+          <label for="stok">Stok <span class="req">*</span></label>
+          <input class="input {{if index .Errors "stok"}}input-error{{end}}" type="number" id="stok" name="stok" min="0" step="1" placeholder="0" value="{{.Form.Stok}}" required data-preview="stok">
+          {{if index .Errors "stok"}}<small class="err">{{index .Errors "stok"}}</small>{{else}}<small class="hint">Stok 1-5 ditandai otomatis sebagai stok menipis.</small>{{end}}
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="harga">Harga Satuan <span class="req">*</span></label>
+        <div class="input-group {{if index .Errors "harga"}}input-error{{end}}">
+          <span class="prefix">Rp</span>
+          <input class="input" type="text" inputmode="numeric" id="harga" name="harga" placeholder="0" value="{{if .Form.Harga}}{{rapi .Form.Harga}}{{end}}" required data-rupiah data-preview="harga">
+        </div>
+        {{if index .Errors "harga"}}<small class="err">{{index .Errors "harga"}}</small>{{else}}<small class="hint">Masukkan angka saja, titik ribuan ditambahkan otomatis.</small>{{end}}
+      </div>
+
+      <div class="field">
+        <label for="deskripsi">Deskripsi</label>
+        <textarea class="input {{if index .Errors "deskripsi"}}input-error{{end}}" id="deskripsi" name="deskripsi" rows="5" maxlength="1000" placeholder="Ceritakan keunggulan produk..." data-preview="deskripsi">{{.Form.Deskripsi}}</textarea>
+        <div class="field-foot">
+          {{if index .Errors "deskripsi"}}<small class="err">{{index .Errors "deskripsi"}}</small>{{else}}<small class="hint">Maksimal 1.000 karakter.</small>{{end}}
+          <small class="hint"><span data-counter-for="deskripsi">0</span>/1000</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a class="btn btn-ghost" href="/produk">Batal</a>
+        <button class="btn btn-primary" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          {{if eq .Aksi "tambah"}}Simpan Produk{{else}}Simpan Perubahan{{end}}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <aside class="form-side">
+    <section class="card preview-card">
+      <header class="card-head">
+        <div>
+          <h2>Pratinjau</h2>
+          <p>Tampilan seperti di daftar produk.</p>
+        </div>
+      </header>
+      <div class="preview">
+        <div class="preview-head">
+          <span class="thumb thumb-lg thumb-slate" data-preview-emoji>&#128230;</span>
+          <div>
+            <strong data-preview-nama>Nama Produk</strong>
+            <small data-preview-kode>PRD-0000</small>
+          </div>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Kategori</span>
+          <span class="badge badge-slate" data-preview-kategori>-</span>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Harga</span>
+          <strong class="harga" data-preview-harga>Rp 0</strong>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Stok</span>
+          <div class="stok">
+            <div class="stok-top">
+              <span class="stok-jumlah" data-preview-stok>0</span>
+              <span class="pill pill-habis" data-preview-pill>Stok Habis</span>
+            </div>
+            <div class="progress progress-habis"><span data-preview-bar style="width:0%"></span></div>
+          </div>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Nilai</span>
+          <span class="muted" data-preview-nilai>Rp 0</span>
+        </div>
+        <p class="preview-desc" data-preview-deskripsi>Deskripsi produk akan tampil di sini.</p>
+      </div>
+    </section>
+
+    <section class="card tips">
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Tips mengisi
+      </h3>
+      <ul>
+        <li>Harga ditulis tanpa titik, contoh <code>125000</code>.</li>
+        <li>Stok 1-5 akan diberi label <em>Stok Menipis</em>.</li>
+        <li>Deskripsi singkat membantu pelanggan memahami produk.</li>
+        <li>Kode produk dibuat otomatis oleh sistem.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{{end}}
